@@ -153,21 +153,24 @@ def craftitem(t):
     return sum(out, [])
 
 
-def craftitemlst(l):
+def craftitemlst(l, rarity = 2):
     """
-    List wrapper for craftitem(t)
+    List wrapper for craftitem(t). Only crafts items with rarity at least the paramater 
+    (equivalent of green rarity by default).
     """
     out = []
     for i in l:
-        out.append(craftitem(i))
+        if items_by_ID[i[0]]['rarity'] > rarity:
+            out.append(craftitem(i))
+        else:
+            out.append(i)
     return consolidatelst(sum(out, []))
 
-def printcraftitemlst(l):
+def craftitem_strformat(i):
     """
-    Prints output from a craftitemlst, converting itemID to names
+    Helper function to parse the output for craftitem for piping purposes
     """
-    for i in l:
-        print(IDtoname(i[0]) + " x" + str(i[1]))
+    return IDtoname(i[0]) + " ;" + str(i[1])
 
 def parser(string):
     """
@@ -198,10 +201,23 @@ def parser(string):
     return (tmp.strip(), rarity, qty)
 
 def convertfile(f):
+    """
+    Wrapper function to take file with lines matching parser-format strings and 
+    applies the function parser on it.
+    """
     with open(f) as file:
         lines = [parser(line.rstrip()) for line in file]
     return lines
 
-def processfile(f):
+def processfile(f, out = None):
     lst = [(nametoID(i[0],i[1]), i[2]) for i in convertfile(f)]
-    printcraftitemlst(craftitemlst(lst))
+    l = craftitemlst(lst)
+    if out:
+        with open(out, 'a', encoding='utf-8') as f:
+            for i in l:
+                f.write(craftitem_strformat(i) + '\n')
+    else:
+        for i in l:
+            print(craftitem_strformat(i))
+    return l
+
