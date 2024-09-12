@@ -5,6 +5,14 @@ Created on Mon Sep 9
 @author: Zethar
 """
 
+import os
+import contextlib
+
+@contextlib.contextmanager
+def suppress_print():
+    with open(os.devnull, "w") as file, contextlib.redirect_stdout(file):
+        yield
+
 import json
 
 """
@@ -163,7 +171,7 @@ def craftitemlst(l, rarity = 2):
         if items_by_ID[i[0]]['rarity'] > rarity:
             out.append(craftitem(i))
         else:
-            out.append(i)
+            out.append([i])
     return consolidatelst(sum(out, []))
 
 def craftitem_strformat(i):
@@ -212,6 +220,23 @@ def convertfile(f):
 def processfile(f, out = None):
     lst = [(nametoID(i[0],i[1]), i[2]) for i in convertfile(f)]
     l = craftitemlst(lst)
+    if out:
+        with open(out, 'a', encoding='utf-8') as f:
+            for i in l:
+                f.write(craftitem_strformat(i) + '\n')
+    else:
+        for i in l:
+            print(craftitem_strformat(i))
+    return l
+
+
+def processfilerecursive(f, out = None):
+#    with suppress_print():
+    l = processfile(str(f))
+    l = craftitemlst(l)
+    l = craftitemlst(l)
+    l = craftitemlst(l)
+    l = craftitemlst(l)
     if out:
         with open(out, 'a', encoding='utf-8') as f:
             for i in l:
